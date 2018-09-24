@@ -50,6 +50,7 @@ public class SwappableBasicActivityDecorated extends AppCompatActivity implement
         widget.state().edit()
                 .setMinimumDate(instance1)
                 .setMaximumDate(instance2)
+                .setCalendarDisplayMode(CalendarMode.TWO_WEEKS)
                 .commit();
 
         widget.addDecorators(
@@ -70,6 +71,13 @@ public class SwappableBasicActivityDecorated extends AppCompatActivity implement
     public void onSetWeekMode() {
         widget.state().edit()
                 .setCalendarDisplayMode(CalendarMode.WEEKS)
+                .commit();
+    }
+
+    @OnClick(R.id.button_two_weeks)
+    public void onSetTwoWeekMode() {
+        widget.state().edit()
+                .setCalendarDisplayMode(CalendarMode.TWO_WEEKS)
                 .commit();
     }
 

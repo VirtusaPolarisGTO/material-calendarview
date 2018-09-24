@@ -1219,7 +1219,7 @@ public class MaterialCalendarView extends ViewGroup {
             out.writeInt(topbarVisible ? 1 : 0);
             out.writeInt(selectionMode);
             out.writeInt(dynamicHeightEnabled ? 1 : 0);
-            out.writeInt(calendarMode == CalendarMode.WEEKS ? 1 : 0);
+            out.writeString(calendarMode.name());
             out.writeParcelable(currentMonth, 0);
             out.writeByte((byte) (cacheCurrentPosition ? 1 : 0));
             out.writeByte((byte) (showWeekDays ? 1 : 0));
@@ -1254,10 +1254,15 @@ public class MaterialCalendarView extends ViewGroup {
             topbarVisible = in.readInt() == 1;
             selectionMode = in.readInt();
             dynamicHeightEnabled = in.readInt() == 1;
-            calendarMode = in.readInt() == 1 ? CalendarMode.WEEKS : CalendarMode.MONTHS;
+            readCalendarMode(in);
             currentMonth = in.readParcelable(loader);
             cacheCurrentPosition = in.readByte() != 0;
             showWeekDays = in.readByte() != 0;
+        }
+
+        private void readCalendarMode(Parcel in){
+            String mode = in.readString();
+            calendarMode = mode == null ? CalendarMode.MONTHS : CalendarMode.valueOf(mode);
         }
     }
 
@@ -2053,6 +2058,18 @@ public class MaterialCalendarView extends ViewGroup {
                     } else {
                         calendarDayToShow = lastVisibleCalendarDay;
                     }
+                } else if (calendarMode == CalendarMode.TWO_WEEKS) {
+                    Calendar lastVisibleCalendar = calendarDayToShow.getCalendar();
+                    lastVisibleCalendar.add(Calendar.DAY_OF_WEEK, 12);
+                    CalendarDay lastVisibleCalendarDay = CalendarDay.from(lastVisibleCalendar);
+                    if (currentlySelectedDate != null &&
+                            (currentlySelectedDate.equals(calendarDayToShow) || currentlySelectedDate.equals(lastVisibleCalendarDay) ||
+                                    (currentlySelectedDate.isAfter(calendarDayToShow) && currentlySelectedDate.isBefore(lastVisibleCalendarDay)))) {
+                        // Currently selected date is within view, so center on that
+                        calendarDayToShow = currentlySelectedDate;
+                    } else {
+                        calendarDayToShow = lastVisibleCalendarDay;
+                    }
                 }
             }
         }
@@ -2073,6 +2090,9 @@ public class MaterialCalendarView extends ViewGroup {
                 break;
             case WEEKS:
                 newAdapter = new WeekPagerAdapter(this);
+                break;
+            case TWO_WEEKS:
+                newAdapter = new TwoWeekPagerAdapter(this);
                 break;
             default:
                 throw new IllegalArgumentException("Provided display mode which is not yet implemented");
